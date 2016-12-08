@@ -26,37 +26,24 @@ public partial class Index : System.Web.UI.Page
         gvHenkilot.DataBind();
     }
 
-    protected void btnSubmit_Click(object sender, EventArgs e)
-    {
-        if (AddPerson(txtTunnus.Text, txtSnimi.Text, txtEnimi.Text, txtOsoite.Text, txtPuhnro.Text, txtEmail.Text))
-        {
-            BindGridView();
-            lblMessages.Text = "Henkilö " + txtTunnus.Text + " lisätty.";
-            Clear();
-        }
-        else
-        {
-            lblMessages.Text = "Lisäys epäonnistui, tarkista syötteet.";
-        }
-    }
-
     protected void btnUpdate_Click(object sender, EventArgs e)
     {
-        if (UpdatePerson(txtTunnus.Text, txtSnimi.Text, txtEnimi.Text, txtOsoite.Text, txtPuhnro.Text, txtEmail.Text))
-        {
-            BindGridView();
-            lblMessages.Text = "Henkilö " + txtTunnus.Text + " päivitetty.";
-            Clear();
+        if (gvHenkilot.SelectedIndex != -1)
+        { 
+            if (UpdatePerson(txtTunnus.Text, txtSnimi.Text, txtEnimi.Text, txtOsoite.Text, txtPuhnro.Text, txtEmail.Text))
+            {
+                BindGridView();
+                lblMessages.Text = "Henkilö " + txtTunnus.Text + " päivitetty.";
+            }
+            else
+            {
+                lblMessages.Text = "Päivitys epäonnistui, tarkista syötteet.";
+            }
         }
         else
         {
-            lblMessages.Text = "Päivitys epäonnistui, tarkista syötteet.";
+            lblMessages.Text = "Valitse henkilö.";
         }
-    }
-
-    protected void btnCancel_Click(object sender, EventArgs e)
-    {
-        Clear();
     }
 
     protected void gvHenkilot_SelectedIndexChanged(object sender, EventArgs e)
@@ -69,8 +56,6 @@ public partial class Index : System.Web.UI.Page
         txtPuhnro.Text = row.Cells[6].Text;
         txtEmail.Text = row.Cells[7].Text;
         txtTunnus.Enabled = false;
-        btnSubmit.Visible = false;
-        btnUpdate.Visible = true;
     }
 
     protected void gvHenkilot_RowDeleting(object sender, GridViewDeleteEventArgs e)
@@ -88,22 +73,7 @@ public partial class Index : System.Web.UI.Page
         }       
     }
 
-    protected void Clear()
-    {
-        txtTunnus.Text = string.Empty;
-        txtEnimi.Text = string.Empty;
-        txtSnimi.Text = string.Empty;
-        txtOsoite.Text = string.Empty;
-        txtPuhnro.Text = string.Empty;
-        txtEmail.Text = string.Empty;
-        txtTunnus.Enabled = true;
-        txtTunnus.Focus();
-        btnSubmit.Visible = true;
-        btnUpdate.Visible = false;
-    }
-
-
-    // Regular expressions
+    // ** REGEX **
 
     // Allow only characters a-z, A-Z, 0-9. Username cannot start with numbers. Length min 1, max 6.
     protected string tunnusRegex = @"^[a-zA-Z][a-zA-Z0-9]{1,6}$";
@@ -121,35 +91,14 @@ public partial class Index : System.Web.UI.Page
     protected string emailRegex = @"^[_a-z0-9-]+(.[a-z0-9-]+)@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,4})$";
 
 
-    // CRUD opeartions
-
-    public bool AddPerson(string tunnus, string snimi, string enimi, string osoite, string puhnro, string email)
-    {
-        if (Regex.IsMatch(tunnus, tunnusRegex) && Regex.IsMatch(snimi, nimiRegex) && Regex.IsMatch(enimi, nimiRegex) &&
-            Regex.IsMatch(osoite, osoiteRegex) && Regex.IsMatch(puhnro, puhnroRegex) && Regex.IsMatch(email, emailRegex)) {
-            try
-            {
-                // 1. Bind multiple parameters
-                db.Bind(new string[] { "@tunnus", tunnus, "@snimi", snimi, "@enimi", enimi, "@osoite", osoite, "@puhnro", puhnro, "@email", email });
-
-                // Insert to database
-                int i = db.nQuery("INSERT INTO henkilot (tunnus, sukunimi, etunimi, osoite, puhnro, email) VALUES (@tunnus, @snimi, @enimi, @osoite, @puhnro, @email)");
-                if (i > 0) return true;
-            }
-            catch (Exception)
-            {
-            }
-        }
-        return false;
-    }
-
+    // ** UPDATE **
     public bool UpdatePerson(string tunnus, string snimi, string enimi, string osoite, string puhnro, string email)
     {
         if (Regex.IsMatch(tunnus, tunnusRegex) && Regex.IsMatch(snimi, nimiRegex) && Regex.IsMatch(enimi, nimiRegex) &&
             Regex.IsMatch(osoite, osoiteRegex) && Regex.IsMatch(puhnro, puhnroRegex) && Regex.IsMatch(email, emailRegex)) {
             try
             {
-                // 2. Give parameters to method, Update database
+                // Give parameters straight to Query-method and update database
                 int i = db.nQuery("UPDATE henkilot SET sukunimi=@snimi, etunimi=@enimi, osoite=@osoite, puhnro=@puhnro, email=@email WHERE tunnus=@tunnus",
                 new string[] { "@tunnus", tunnus, "@snimi", snimi, "@enimi", enimi, "@osoite", osoite, "@puhnro", puhnro, "@email", email });
                 if (i > 0) return true;
@@ -161,12 +110,13 @@ public partial class Index : System.Web.UI.Page
         return false;
     }
 
+    // ** DELETE **
     public bool DeletePerson(string tunnus)
     {
         if (Regex.IsMatch(tunnus, tunnusRegex)) {
             try
             {
-                // 3. Bind one parameter
+                // Bind one parameter
                 db.Bind("tunnus", tunnus);
                 // Delete from database
                 int i = db.nQuery("DELETE FROM henkilot WHERE tunnus=@tunnus");

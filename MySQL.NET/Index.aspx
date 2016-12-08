@@ -9,6 +9,8 @@
 <body>
     <form id="form1" runat="server">
     <div>
+        [<a href="Logout.aspx">Kirjaudu ulos</a>]
+        <hr />
         <table>
         <tr>
             <td class="td">Tunnus:</td>
@@ -48,9 +50,7 @@
         </tr>
         <tr>
             <td>
-                <asp:Button ID="btnSubmit" runat="server" Text="Add" OnClick="btnSubmit_Click" />
-                <asp:Button ID="btnUpdate" runat="server" Text="Update" Visible="false" OnClick="btnUpdate_Click" />
-                <asp:Button ID="btnCancel" runat="server" Text="Cancel" OnClick="btnCancel_Click" />
+                <asp:Button ID="btnUpdate" runat="server" Text="Update" OnClick="btnUpdate_Click" />
             </td>
         </tr>
     </table>
